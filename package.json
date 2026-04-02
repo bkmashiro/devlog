@@ -11,8 +11,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "tsc",
+    "build": "rm -rf dist && tsc",
+    "prepublishOnly": "pnpm build",
     "test": "node --import tsx/esm --test test/**/*.test.ts"
   },
   "dependencies": {
