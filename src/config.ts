@@ -6,6 +6,7 @@ export interface DevlogConfig {
   repos: string[]
   outputDir: string
   defaultSince: string
+  webhookUrl: string | null
 }
 
 const DEFAULT_OUTPUT_DIR = path.join(os.homedir(), 'devlog-output')
@@ -24,7 +25,8 @@ export function getDefaultConfig(): DevlogConfig {
   return {
     repos: [],
     outputDir: DEFAULT_OUTPUT_DIR,
-    defaultSince: 'yesterday'
+    defaultSince: 'yesterday',
+    webhookUrl: null
   }
 }
 
@@ -40,7 +42,8 @@ export function loadConfig(): DevlogConfig {
   return {
     repos: Array.isArray(parsed.repos) ? parsed.repos : [],
     outputDir: typeof parsed.outputDir === 'string' ? parsed.outputDir : DEFAULT_OUTPUT_DIR,
-    defaultSince: typeof parsed.defaultSince === 'string' ? parsed.defaultSince : 'yesterday'
+    defaultSince: typeof parsed.defaultSince === 'string' ? parsed.defaultSince : 'yesterday',
+    webhookUrl: typeof parsed.webhookUrl === 'string' ? parsed.webhookUrl : null
   }
 }
 
@@ -62,5 +65,11 @@ export function removeRepo(repoPath: string): void {
   const absolutePath = path.resolve(repoPath)
   const config = loadConfig()
   config.repos = config.repos.filter((entry) => entry !== absolutePath)
+  saveConfig(config)
+}
+
+export function setWebhook(url: string): void {
+  const config = loadConfig()
+  config.webhookUrl = url
   saveConfig(config)
 }

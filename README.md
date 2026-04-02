@@ -13,7 +13,9 @@ npm i -g devlog
 ```bash
 devlog add ~/projects/repo-one
 devlog add ~/projects/repo-two
+devlog config set-webhook https://hooks.slack.com/services/...
 devlog generate --since yesterday
+devlog streak
 ```
 
 ## Commands
@@ -26,14 +28,25 @@ devlog generate [options]
   --output <file>    Save to file instead of stdout
   --format <fmt>     markdown|terminal (default: terminal)
   --no-chore         Skip chore/bump commits
+  --webhook <url>    Send generated log to a webhook URL
+  --webhook-type     slack|discord|generic
 
 devlog add <repo-path>
 devlog remove <repo-path>
 devlog list
 devlog config
+devlog config set-webhook <url>
+devlog streak [--days <n>]
 ```
 
 Supported date inputs include `yesterday`, `7 days ago`, `2024-03-20`, and ISO timestamps.
+
+Webhook delivery supports:
+- Slack incoming webhooks via Block Kit payloads
+- Discord webhooks via the `content` field
+- Generic JSON webhooks via a `{ "text": "..." }` body
+
+`devlog streak` scans the configured repositories for the last 30 days, reports your current and longest streaks, and renders an ASCII activity chart for the last 14 days by default.
 
 ## Example output
 

@@ -15,6 +15,11 @@ export interface CommitInfo {
   files: string[]
 }
 
+export interface DailyCommitActivity {
+  date: string
+  commits: number
+}
+
 interface MutableCommitInfo extends CommitInfo {}
 
 const COMMIT_LINE_PATTERN = /^([0-9a-f]+)\|([^|]+)\|([^|]+)\|(.*)$/
@@ -115,6 +120,28 @@ export async function getCommits(repoPath: string, since: string, until?: string
   const command = `git -C ${shellEscape(repoPath)} log --since=${shellEscape(sinceDate)}${untilFlag} --format=%H\\|%aI\\|%an\\|%s --numstat`
   const output = gitCommandExecutor(command)
   return parseGitLogOutput(output)
+}
+
+export async function getDailyCommitActivity(repoPath: string, since: string, until?: string): Promise<DailyCommitActivity[]> {
+  const sinceDate = parseDate(since)
+  const untilDate = until ? parseDate(until) : undefined
+  const untilFlag = untilDate ? ` --until=${shellEscape(untilDate)}` : ''
+  const command = `git -C ${shellEscape(repoPath)} log --since=${shellEscape(sinceDate)}${untilFlag} --date=short --format=%ad`
+  const output = gitCommandExecutor(command)
+  const counts = new Map<string, number>()
+
+  for (const line of output.split(/\r?\n/)) {
+    const date = line.trim()
+    if (!date) {
+      continue
+    }
+
+    counts.set(date, (counts.get(date) ?? 0) + 1)
+  }
+
+  return Array.from(counts.entries())
+    .map(([date, commits]) => ({ date, commits }))
+    .sort((left, right) => left.date.localeCompare(right.date))
 }
 
 export function getConfiguredRepos(): string[] {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getCommits, parseDate, parseGitLogOutput, setGitCommandExecutorForTesting } from '../src/git.js'
+import { getCommits, getDailyCommitActivity, parseDate, parseGitLogOutput, setGitCommandExecutorForTesting } from '../src/git.js'
 
 test('parseDate handles yesterday', () => {
   const expected = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -65,6 +65,20 @@ test('getCommits uses git log output from execSync', async () => {
     assert.equal(commits.length, 1)
     assert.equal(commits[0].author, 'Alice')
     assert.equal(commits[0].files[0], 'src/api.ts')
+  } finally {
+    setGitCommandExecutorForTesting(null)
+  }
+})
+
+test('getDailyCommitActivity groups commits by day', async () => {
+  setGitCommandExecutorForTesting(() => ['2024-03-20', '2024-03-20', '2024-03-21', ''].join('\n'))
+
+  try {
+    const activity = await getDailyCommitActivity('/tmp/repo', '2024-03-20')
+    assert.deepEqual(activity, [
+      { date: '2024-03-20', commits: 2 },
+      { date: '2024-03-21', commits: 1 }
+    ])
   } finally {
     setGitCommandExecutorForTesting(null)
   }
